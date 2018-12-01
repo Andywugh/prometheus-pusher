@@ -1,16 +1,17 @@
-FROM golang:1.8
-MAINTAINER yunlzheng
+ARG PUSHER_VERSION=0.1.0
 
-EXPOSE 9174
+FROM golang:1.10-alpine3.7 AS build_go
 
-COPY . /go/src/github.com/yunlzheng/prometheus-pusher
+COPY ./prometheus-pusher /go/src/github.com/yunlzheng/prometheus-pusher
+WORKDIR /go/src/github.com/yunlzheng/prometheus-pusher
+RUN go build .
 
- RUN cd /go/src/github.com/yunlzheng/prometheus-pusher \
-  && GOPATH=/go go get\
-  && GOPATH=/go go build -o /bin/prometheus_pusher \
-  && rm -rf /go/bin /go/pkg /var/cache/apk/*
+FROM golang:1.10-alpine3.7 AS dist
+ARG PUSHER_VERSION
+ENV PUSHER_VERSION=${PUSHER_VERSION}
+EXPOSE 9300
+COPY --from=build_go /go/src/github.com/yunlzheng/prometheus-pusher/prometheus-pusher /prometheus-pusher
+COPY ./prometheus-pusher/entrypoint.sh /entrypoint.sh
+WORKDIR /
+CMD ["./prometheus-pusher"]
 
-ADD entrypoint.sh entrypoint.sh
-RUN chmod +x entrypoint.sh
-
-ENTRYPOINT [ "./entrypoint.sh" ]
