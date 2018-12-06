@@ -8,6 +8,7 @@ import (
 	"github.com/prometheus/common/version"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/retrieval"
+	"github.com/spf13/viper"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -179,7 +180,14 @@ type jobEndpoint struct {
 }
 
 func (je *jobEndpoint) instance() string {
-	return strings.Replace(strings.Replace(strings.Replace(strings.TrimLeft(je.Endpoint, "http://"), "/", "-", -1), ".", "-", -1), ":", "-", -1)
+	instance := strings.Replace(strings.Replace(strings.Replace(strings.TrimLeft(je.Endpoint, "http://"), "/", "-", -1), ".", "-", -1), ":", "-", -1)
+	viper.AutomaticEnv()
+	uuid := viper.GetString("OVS_UUID")
+	if uuid != "" {
+		return fmt.Sprintf("%v-%v", instance, uuid)
+	} else {
+		return instance
+	}
 }
 
 type ExporterScrape struct {

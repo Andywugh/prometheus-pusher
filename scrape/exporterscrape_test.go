@@ -1,9 +1,9 @@
 package scrape
 
 import (
-	"testing"
-	"strings"
 	"fmt"
+	"strings"
+	"testing"
 )
 
 func TestInstance(t *testing.T) {
